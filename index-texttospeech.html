@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulnerability Solution Guide</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #container {
+            max-width: 600px;
+            margin: auto;
+        }
+        #query-input {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #check-vulnerabilities-btn, #abort-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        #check-vulnerabilities-btn:hover, #abort-btn:hover {
+            background-color: #0056b3;
+        }
+        #results {
+            margin-top: 20px;
+            white-space: pre-wrap; /* Preserve white spaces and line breaks */
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+        #audio-player {
+            margin-top: 20px;
+            display: none; /* Hidden by default */
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <h1>Vulnerability Solution Guide</h1>
+        <input type="text" id="query-input" placeholder="Enter your query">
+        <button id="check-vulnerabilities-btn">Check Vulnerabilities</button>
+        <button id="abort-btn">Abort</button>
+        <pre id="results"></pre>
+        <audio id="audio-player" controls>
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+
+    <script>
+        let typingInterval;
+        let abortTyping = false;
+
+        function typeText(text, element) {
+            let index = 0;
+            abortTyping = false;
+            typingInterval = setInterval(() => {
+                if (abortTyping || index >= text.length) {
+                    clearInterval(typingInterval);
+                    return;
+                }
+                element.textContent += text[index++];
+            }, 15);  // Increased typing speed (3x faster)
+        }
+
+        function stopTyping() {
+            clearInterval(typingInterval);
+            abortTyping = true;
+        }
+
+        document.getElementById('check-vulnerabilities-btn').addEventListener('click', function() {
+            const query = document.getElementById('query-input').value;
+            const resultsElement = document.getElementById('results');
+            const audioPlayer = document.getElementById('audio-player');
+
+            // Clear previous results
+            resultsElement.textContent = '';
+            audioPlayer.style.display = 'none';  // Hide the audio player initially
+
+            fetch('http://127.0.0.1:5000/check_vulnerabilities', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.results && data.results.length > 0) {
+                    typeText(JSON.stringify(data.results, null, 2), resultsElement);
+
+                    if (data.audio_file) {
+                        audioPlayer.src = data.audio_file;
+                        audioPlayer.style.display = 'block';  // Show the audio player
+                    }
+                } else {
+                    typeText(data.message || 'No results available.', resultsElement);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                typeText('An error occurred. Check the console for details.', resultsElement);
+            });
+        });
+
+        document.getElementById('abort-btn').addEventListener('click', function() {
+            stopTyping();
+        });
+    </script>
+</body>
+</html>

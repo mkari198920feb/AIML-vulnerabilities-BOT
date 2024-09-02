@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vulnerability Solution Guide</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            font-size: 2em;
+        }
+        #results {
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        #results::after {
+            content: '|';
+            animation: blink 0.8s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Vulnerability Solution Guide</h1>
+    <input type="text" id="query-input" placeholder="Enter your keyword">
+    <button id="check-vulnerabilities-btn">Check Vulnerabilities</button>
+    <div id="results"></div>
+
+    <script>
+        document.getElementById('check-vulnerabilities-btn').addEventListener('click', function() {
+            const query = document.getElementById('query-input').value;
+
+            fetch('http://127.0.0.1:5000/check_vulnerabilities', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ query: query })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message) {
+                    typeText(document.getElementById('results'), data.message);
+                } else {
+                    typeText(document.getElementById('results'), JSON.stringify(data, null, 2));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                typeText(document.getElementById('results'), 'An error occurred. Check the console for details.');
+            });
+        });
+
+        function typeText(element, text) {
+            element.innerHTML = ''; // Clear any existing content
+            let i = 0;
+            function typing() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(typing, 50); // Adjust typing speed here (lower value = faster typing)
+                }
+            }
+            typing();
+        }
+    </script>
+</body>
+</html>
