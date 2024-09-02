@@ -3,8 +3,6 @@ from flask_cors import CORS
 import spacy
 from spacy.matcher import PhraseMatcher
 import json
-from gtts import gTTS
-import os
 
 # Initialize Flask app and CORS
 app = Flask(__name__)
@@ -155,16 +153,7 @@ def check_vulnerabilities():
         })
     
     if results:
-        # Convert the results description to speech
-        if results:
-            text = "\n".join([res["description"] for res in results])
-            tts = gTTS(text=text, lang='en', slow=False)
-            audio_file = 'response.mp3'
-            tts.save(audio_file)
-            # The audio file is saved, you might want to serve it to the user
-            return jsonify({"results": results, "audio_file": audio_file})
-        else:
-            return jsonify({"message": "No known vulnerabilities found for this query."})
+        return jsonify(results)
     else:
         return jsonify({"message": "No known vulnerabilities found for this query."})
 
